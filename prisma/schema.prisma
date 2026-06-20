@@ -1,0 +1,298 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  role String
+  branchId String?
+  branch Branch? @relation(fields:[branchId], references:[id])
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  scores Score[]
+  attendance Attendance[]
+  outreachReports OutreachReport[]
+  auditLogs AuditLog[]
+}
+
+model Branch {
+  id String @id @default(cuid())
+  name String
+  code String @unique
+  address String?
+  phone String?
+  email String?
+  status String @default("ACTIVE")
+  users User[]
+  families Family[]
+  members Member[]
+  trainingSets TrainingSet[]
+  studentRecords StudentTrainingRecord[]
+  attendance Attendance[]
+  outreachReports OutreachReport[]
+  certificates Certificate[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Family {
+  id String @id @default(cuid())
+  name String
+  branchId String
+  branch Branch @relation(fields:[branchId], references:[id])
+  familyHead String?
+  address String?
+  phone String?
+  email String?
+  notes String?
+  members Member[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([branchId])
+}
+
+model Member {
+  id String @id @default(cuid())
+  fullName String
+  gender String
+  dateOfBirth DateTime
+  phone String
+  email String?
+  familyId String
+  family Family @relation(fields:[familyId], references:[id])
+  branchId String
+  branch Branch @relation(fields:[branchId], references:[id])
+  membershipStatus String @default("Member")
+  maritalStatus String?
+  dateJoined DateTime?
+  occupation String?
+  photoUrl String?
+  active Boolean @default(true)
+  studentRecords StudentTrainingRecord[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([phone, branchId])
+  @@index([familyId])
+  @@index([branchId])
+}
+
+model TrainingType {
+  id String @id @default(cuid())
+  name String
+  shortCode String @unique
+  description String?
+  isEntryLevel Boolean @default(false)
+  canBePromotedFrom String?
+  canPromoteTo String?
+  status String @default("ACTIVE")
+  levels TrainingLevel[]
+  sets TrainingSet[]
+  records StudentTrainingRecord[]
+  sermons SermonLink[]
+  curriculum Curriculum[]
+}
+
+model TrainingLevel {
+  id String @id @default(cuid())
+  trainingTypeId String
+  trainingType TrainingType @relation(fields:[trainingTypeId], references:[id])
+  name String
+  levelCode String
+  levelOrder Int
+  requiredPassedExams Int @default(1)
+  passMark Int @default(60)
+  certificateRequired Boolean @default(true)
+  nextEligible String?
+  status String @default("ACTIVE")
+  sets TrainingSet[]
+  records StudentTrainingRecord[]
+  sermons SermonLink[]
+  curriculum Curriculum[]
+  @@unique([trainingTypeId, levelCode])
+}
+
+model TrainingSet {
+  id String @id @default(cuid())
+  trainingTypeId String
+  trainingType TrainingType @relation(fields:[trainingTypeId], references:[id])
+  trainingLevelId String
+  trainingLevel TrainingLevel @relation(fields:[trainingLevelId], references:[id])
+  branchId String
+  branch Branch @relation(fields:[branchId], references:[id])
+  name String
+  sessionYear Int
+  startDate DateTime
+  expectedEndDate DateTime?
+  curriculumNotes String?
+  sermonLinks String?
+  status String @default("ACTIVE")
+  students StudentTrainingRecord[]
+  sermons SermonLink[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StudentTrainingRecord {
+  id String @id @default(cuid())
+  memberId String
+  member Member @relation(fields:[memberId], references:[id])
+  branchId String
+  branch Branch @relation(fields:[branchId], references:[id])
+  trainingTypeId String
+  trainingType TrainingType @relation(fields:[trainingTypeId], references:[id])
+  trainingLevelId String
+  trainingLevel TrainingLevel @relation(fields:[trainingLevelId], references:[id])
+  trainingSetId String
+  trainingSet TrainingSet @relation(fields:[trainingSetId], references:[id])
+  studentCode String @unique
+  currentStatus String @default("ACTIVE")
+  passedExamsCount Int @default(0)
+  requiredExamsCount Int @default(1)
+  latestScore Int?
+  eligibleForPromotion Boolean @default(false)
+  certificateGenerated Boolean @default(false)
+  dateRegistered DateTime @default(now())
+  scores Score[]
+  certificates Certificate[]
+  transfers TransferHistory[]
+  @@index([memberId, currentStatus])
+}
+
+model Score {
+  id String @id @default(cuid())
+  studentRecordId String
+  studentRecord StudentTrainingRecord @relation(fields:[studentRecordId], references:[id])
+  trainingTypeId String
+  trainingLevelId String
+  trainingSetId String
+  examNumber Int
+  finalScore Int
+  passStatus String
+  passMark Int @default(60)
+  dateOfExam DateTime
+  enteredById String
+  enteredBy User @relation(fields:[enteredById], references:[id])
+  dateEntered DateTime @default(now())
+}
+
+model TransferHistory {
+  id String @id @default(cuid())
+  studentRecordId String
+  studentRecord StudentTrainingRecord @relation(fields:[studentRecordId], references:[id])
+  fromTrainingSetId String
+  toTrainingSetId String
+  reason String?
+  transferredAt DateTime @default(now())
+}
+
+model Curriculum {
+  id String @id @default(cuid())
+  trainingTypeId String
+  trainingType TrainingType @relation(fields:[trainingTypeId], references:[id])
+  trainingLevelId String
+  trainingLevel TrainingLevel @relation(fields:[trainingLevelId], references:[id])
+  title String
+  description String?
+  fileUrl String?
+  relatedSermonUrl String?
+  examNumber Int?
+  expectedExamDate DateTime?
+  status String @default("DRAFT")
+  createdAt DateTime @default(now())
+}
+
+model SermonLink {
+  id String @id @default(cuid())
+  title String
+  minister String?
+  sermonUrl String
+  trainingTypeId String?
+  trainingType TrainingType? @relation(fields:[trainingTypeId], references:[id])
+  trainingLevelId String?
+  trainingLevel TrainingLevel? @relation(fields:[trainingLevelId], references:[id])
+  trainingSetId String?
+  trainingSet TrainingSet? @relation(fields:[trainingSetId], references:[id])
+  topicOrExamNumber String?
+  sermonDate DateTime?
+  status String @default("ACTIVE")
+}
+
+model Attendance {
+  id String @id @default(cuid())
+  branchId String
+  branch Branch @relation(fields:[branchId], references:[id])
+  title String
+  attendanceDate DateTime
+  totalPersons Int
+  firstTimers Int?
+  children Int?
+  men Int?
+  women Int?
+  notes String?
+  enteredById String
+  enteredBy User @relation(fields:[enteredById], references:[id])
+  createdAt DateTime @default(now())
+}
+
+model OutreachReport {
+  id String @id @default(cuid())
+  branchId String
+  branch Branch @relation(fields:[branchId], references:[id])
+  title String
+  reportType String
+  startDate DateTime
+  endDate DateTime?
+  numberReached Int @default(0)
+  firstTimers Int @default(0)
+  numberSaved Int @default(0)
+  supernaturalsRecorded Int @default(0)
+  jointPrayers Int @default(0)
+  location String?
+  testimonies String?
+  notes String?
+  enteredById String
+  enteredBy User @relation(fields:[enteredById], references:[id])
+  createdAt DateTime @default(now())
+}
+
+model Certificate {
+  id String @id @default(cuid())
+  certificateId String @unique
+  studentRecordId String
+  studentRecord StudentTrainingRecord @relation(fields:[studentRecordId], references:[id])
+  branchId String
+  branch Branch @relation(fields:[branchId], references:[id])
+  pdfPath String?
+  issuedAt DateTime @default(now())
+  issuedBy String?
+}
+
+model NotificationRecord {
+  id String @id @default(cuid())
+  type String
+  title String
+  body String
+  branchId String?
+  readAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  userId String?
+  user User? @relation(fields:[userId], references:[id])
+  action String
+  entity String
+  entityId String?
+  metadata String?
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,6 @@
+node_modules
+.next
+.env
+prisma/tea-app.db
+*.zip
+npm-debug.log*

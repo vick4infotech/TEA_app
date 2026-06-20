@@ -1,0 +1,2 @@
+-- SQLite schema is generated from prisma/schema.prisma with: npx prisma db push
+-- This file is included to document the initial migration point for deployment teams that keep migration folders under version control.

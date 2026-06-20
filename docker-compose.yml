@@ -1,0 +1,15 @@
+services:
+  tea-app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/app/data/tea-app.db"
+      JWT_SECRET: "change-this-long-random-secret-before-deployment"
+      DEFAULT_SUPER_ADMIN_EMAIL: "admin@theedifyingassembly.org"
+      DEFAULT_SUPER_ADMIN_PASSWORD: "ChangeMe@12345"
+      NEXT_PUBLIC_APP_NAME: "TEA-APP"
+    volumes:
+      - tea_data:/app/data
+volumes:
+  tea_data:
