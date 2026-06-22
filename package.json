@@ -6,14 +6,16 @@
     "dev": "next dev",
     "predev": "node scripts/prepare-env.js && prisma generate && prisma db push",
     "build": "node scripts/prepare-env.js && prisma generate && next build",
-    "start": "next start",
+    "start": "node scripts/prepare-env.js && prisma generate && prisma db push && npm run db:seed && next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
     "db:setup": "node scripts/prepare-env.js && prisma generate && prisma db push && npm run db:seed",
     "postinstall": "node scripts/prepare-env.js && prisma generate",
-    "setup": "npm install --registry=https://registry.npmjs.org/ && npm run db:setup"
+    "setup": "npm install --registry=https://registry.npmjs.org/ && npm run db:setup",
+    "serve": "next start",
+    "start:docker": "sh scripts/docker-entrypoint.sh"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

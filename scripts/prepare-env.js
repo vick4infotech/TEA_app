@@ -14,6 +14,7 @@ function writeDefaultEnv() {
     'NEXT_PUBLIC_APP_NAME="TEA-APP"',
     'DEFAULT_SUPER_ADMIN_EMAIL="admin@theedifyingassembly.org"',
     'DEFAULT_SUPER_ADMIN_PASSWORD="ChangeMe@12345"',
+    'SESSION_COOKIE_SECURE="auto"',
     ''
   ].join('\n');
   fs.writeFileSync(envPath, content);

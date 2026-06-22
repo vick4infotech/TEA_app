@@ -32,6 +32,7 @@ JWT_SECRET="replace-with-a-long-random-secret"
 NEXT_PUBLIC_APP_NAME="TEA-APP"
 DEFAULT_SUPER_ADMIN_EMAIL="admin@theedifyingassembly.org"
 DEFAULT_SUPER_ADMIN_PASSWORD="ChangeMe@12345"
+SESSION_COOKIE_SECURE="auto"
 ```
 
 SQLite is used by default. The database file is created by Prisma during setup.
@@ -65,6 +66,7 @@ JWT_SECRET="use-a-long-random-production-secret"
 DEFAULT_SUPER_ADMIN_EMAIL="admin@theedifyingassembly.org"
 DEFAULT_SUPER_ADMIN_PASSWORD="set-a-strong-password"
 NEXT_PUBLIC_APP_NAME="TEA-APP"
+SESSION_COOKIE_SECURE="auto"
 ```
 
 Mount persistent storage to `/app/data` so the SQLite database remains available after redeployments.
@@ -72,10 +74,22 @@ Mount persistent storage to `/app/data` so the SQLite database remains available
 Container start command:
 
 ```bash
-npx prisma db push && npm run db:seed && npm run start
+npm run start
 ```
 
-The included Docker image already runs that command.
+The included Docker image already runs that command through `scripts/docker-entrypoint.sh`. On every container start, Prisma syncs the SQLite schema and ensures that the administrator account from `DEFAULT_SUPER_ADMIN_EMAIL` and `DEFAULT_SUPER_ADMIN_PASSWORD` is active. Keep those values set in Dockploy so the login details are predictable after redeployment.
+
+If login fails after deployment, verify these environment variables in Dockploy:
+
+```env
+DATABASE_URL="file:/app/data/tea-app.db"
+JWT_SECRET="use-a-long-random-production-secret"
+DEFAULT_SUPER_ADMIN_EMAIL="admin@theedifyingassembly.org"
+DEFAULT_SUPER_ADMIN_PASSWORD="your-current-admin-password"
+SESSION_COOKIE_SECURE="auto"
+```
+
+For HTTPS deployments behind Dockploy, `SESSION_COOKIE_SECURE="auto"` is recommended. If you are testing through plain `http://IP:PORT`, set `SESSION_COOKIE_SECURE="false"` until the domain is using HTTPS.
 
 ## Folder Structure
 
@@ -132,7 +146,7 @@ Members and students do not have login accounts. Administrators and coordinators
 
 ## Notes
 
-Use a strong `JWT_SECRET` and change the default admin password before production deployment.
+Use a strong `JWT_SECRET` and set a strong `DEFAULT_SUPER_ADMIN_PASSWORD` before production deployment. The seed process keeps that administrator login active.
 
 ## NPM registry note
 
@@ -152,4 +166,4 @@ For Dockploy/Hostinger, keep the included `.npmrc` file and use the provided Doc
 
 ## Latest Fixes
 
-This package includes corrected form value handling for string fields such as branch codes and phone numbers, select controls for related records, and dependency-free PDF generation for report and certificate downloads.
+This package includes corrected form value handling for string fields such as branch codes and phone numbers, select controls for related records, dependency-free PDF generation for report and certificate downloads, and deployment-safe administrator login handling for Dockploy/Hostinger.

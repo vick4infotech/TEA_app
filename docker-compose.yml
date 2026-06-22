@@ -9,6 +9,7 @@ services:
       DEFAULT_SUPER_ADMIN_EMAIL: "admin@theedifyingassembly.org"
       DEFAULT_SUPER_ADMIN_PASSWORD: "ChangeMe@12345"
       NEXT_PUBLIC_APP_NAME: "TEA-APP"
+      SESSION_COOKIE_SECURE: "auto"
     volumes:
       - tea_data:/app/data
 volumes:
